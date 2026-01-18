@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+set_and_check(serial_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(serial_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/serialTargets.cmake")
+
+check_required_components(serial)
