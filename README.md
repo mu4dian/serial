@@ -1,63 +1,214 @@
-# Serial Communication Library
+# Serial Communication Library (Linux)
 
-[![Build Status](https://travis-ci.org/wjwwood/serial.svg?branch=master)](https://travis-ci.org/wjwwood/serial)*(Linux and OS X)* [![Build Status](https://ci.appveyor.com/api/projects/status/github/wjwwood/serial)](https://ci.appveyor.com/project/wjwwood/serial)*(Windows)*
+一个用于 Linux 平台的 C++ RS-232 串口通信库。提供了简洁的现代 C++ 接口，用于串口的打开、关闭、读写等操作。
 
-This is a cross-platform library for interfacing with rs-232 serial like ports written in C++. It provides a modern C++ interface with a workflow designed to look and feel like PySerial, but with the speed and control provided by C++. 
+## 特性
 
-This library is in use in several robotics related projects and can be built and installed to the OS like most unix libraries with make and then sudo make install, but because it is a catkin project it can also be built along side other catkin projects in a catkin workspace.
+- ✅ 简单易用的 C++ 接口
+- ✅ 支持共享库和静态库
+- ✅ 超时控制和流控制
+- ✅ 无额外依赖
+- ✅ CMake 集成支持
 
-Serial is a class that provides the basic interface common to serial libraries (open, close, read, write, etc..) and requires no extra dependencies. It also provides tight control over timeouts and control over handshaking lines. 
+## 系统要求
 
-### Documentation
+- **操作系统**: Linux (Ubuntu/Debian 等)
+- **编译器**: GCC 或 Clang，支持 C++11
+- **构建工具**: CMake 3.5+
+- **依赖库**: pthread, rt (系统自带)
 
-Website: http://wjwwood.github.io/serial/
+## 构建与安装
 
-API Documentation: http://wjwwood.github.io/serial/doc/1.1.0/index.html
+### 1. 构建共享库（推荐）
 
-### Dependencies
+```bash
+mkdir build && cd build
+cmake -DBUILD_SHARED_LIBS=ON ..
+make
+sudo make install
+```
 
-Required:
-* [catkin](http://www.ros.org/wiki/catkin) - cmake and Python based buildsystem
-* [cmake](http://www.cmake.org) - buildsystem
-* [Python](http://www.python.org) - scripting language
-  * [empy](http://www.alcyone.com/pyos/empy/) - Python templating library
-  * [catkin_pkg](http://pypi.python.org/pypi/catkin_pkg/) - Runtime Python library for catkin
+安装位置：
+- 库文件: `/usr/local/lib/libserial.so`
+- 头文件: `/usr/local/include/serial/`
+- CMake 配置: `/usr/local/lib/cmake/serial/`
 
-Optional (for documentation):
-* [Doxygen](http://www.doxygen.org/) - Documentation generation tool
-* [graphviz](http://www.graphviz.org/) - Graph visualization software
+### 2. 构建静态库
 
-### Install
+```bash
+mkdir build && cd build
+cmake -DBUILD_SHARED_LIBS=OFF ..
+make
+sudo make install
+```
 
-Get the code:
+### 3. 构建选项
 
-    git clone https://github.com/wjwwood/serial.git
+```bash
+# 禁用示例程序
+cmake -DBUILD_EXAMPLES=OFF ..
 
-Build:
+# 指定安装路径
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 
-    make
+# Debug 模式
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+```
 
-Build and run the tests:
+### 4. 卸载
 
-    make test
+```bash
+cd build
+sudo make uninstall
+```
 
-Build the documentation:
+## 使用方法
 
-    make doc
+### CMake 项目集成
 
-Install:
+在你的 `CMakeLists.txt` 中：
 
-    make install
+```cmake
+cmake_minimum_required(VERSION 3.5)
+project(my_project)
 
-### License
+# 查找 serial 库
+find_package(serial REQUIRED)
 
-[The MIT License](LICENSE)
+# 添加可执行文件
+add_executable(my_app main.cpp)
 
-### Authors
+# 链接 serial 库
+target_link_libraries(my_app serial::serial)
+```
 
-William Woodall <wjwwood@gmail.com>
-John Harrison <ash.gti@gmail.com>
+### 基本示例代码
 
-### Contact
+```cpp
+#include <serial/serial.h>
+#include <iostream>
 
-William Woodall <william@osrfoundation.org>
+int main() {
+    // 创建串口对象
+    serial::Serial my_serial("/dev/ttyUSB0", 115200, 
+                             serial::Timeout::simpleTimeout(1000));
+    
+    // 检查串口是否打开
+    if(my_serial.isOpen()) {
+        std::cout << "串口已打开" << std::endl;
+    }
+    
+    // 写入数据
+    std::string data = "Hello Serial!";
+    my_serial.write(data);
+    
+    // 读取数据
+    std::string result = my_serial.read(100);
+    std::cout << "接收: " << result << std::endl;
+    
+    // 关闭串口
+    my_serial.close();
+    
+    return 0;
+}
+```
+
+### 编译示例
+
+使用 CMake：
+```bash
+cmake ..
+make
+```
+
+手动编译：
+```bash
+g++ -std=c++11 main.cpp -lserial -o my_app
+```
+
+### 常用 API
+
+```cpp
+// 构造函数
+Serial(const std::string &port, 
+       uint32_t baudrate,
+       Timeout timeout = Timeout());
+
+// 基本操作
+void open();                          // 打开串口
+void close();                         // 关闭串口
+bool isOpen();                        // 检查是否打开
+size_t available();                   // 可读字节数
+
+// 读写操作
+size_t write(const std::string &data);     // 写入数据
+size_t write(const uint8_t *data, size_t size);
+std::string read(size_t size);             // 读取指定字节
+std::string readline();                    // 读取一行
+void flush();                              // 刷新缓冲区
+
+// 配置
+void setBaudrate(uint32_t baudrate);       // 设置波特率
+void setTimeout(Timeout &timeout);         // 设置超时
+void setPort(const std::string &port);     // 设置端口
+```
+
+### 波特率支持
+
+常用波特率：9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
+
+## 示例程序
+
+查看 `examples/serial_example.cc` 获取完整示例：
+
+```bash
+cd build
+./serial_example
+```
+
+## 常见问题
+
+### 1. 权限问题
+
+如果遇到权限错误，将用户添加到 `dialout` 组：
+
+```bash
+sudo usermod -a -G dialout $USER
+# 注销后重新登录生效
+```
+
+### 2. 找不到串口设备
+
+查看可用串口：
+```bash
+ls /dev/tty*
+# 或
+dmesg | grep tty
+```
+
+### 3. CMake 找不到 serial 包
+
+确保已正确安装，或手动指定路径：
+```bash
+cmake -Dserial_DIR=/usr/local/lib/cmake/serial ..
+```
+
+### 4. 动态库链接问题
+
+更新动态库缓存：
+```bash
+sudo ldconfig
+```
+
+## 许可证
+
+[MIT License](LICENSE)
+
+## 原作者
+
+- William Woodall <wjwwood@gmail.com>
+- John Harrison <ash.gti@gmail.com>
+
+---
+
+**注**: 此版本已针对 Linux 平台精简优化，移除了 Windows 和 macOS 支持。
