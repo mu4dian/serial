@@ -29,6 +29,7 @@ sudo make install
 ```
 
 安装位置：
+
 - 库文件: `/usr/local/lib/libserial.so`
 - 头文件: `/usr/local/include/serial/`
 - CMake 配置: `/usr/local/lib/cmake/serial/`
@@ -90,25 +91,25 @@ target_link_libraries(my_app serial::serial)
 
 int main() {
     // 创建串口对象
-    serial::Serial my_serial("/dev/ttyUSB0", 115200, 
+    serial::Serial my_serial("/dev/ttyUSB0", 115200,
                              serial::Timeout::simpleTimeout(1000));
-    
+
     // 检查串口是否打开
     if(my_serial.isOpen()) {
         std::cout << "串口已打开" << std::endl;
     }
-    
+
     // 写入数据
     std::string data = "Hello Serial!";
     my_serial.write(data);
-    
+
     // 读取数据
     std::string result = my_serial.read(100);
     std::cout << "接收: " << result << std::endl;
-    
+
     // 关闭串口
     my_serial.close();
-    
+
     return 0;
 }
 ```
@@ -116,12 +117,14 @@ int main() {
 ### 编译示例
 
 使用 CMake：
+
 ```bash
 cmake ..
 make
 ```
 
 手动编译：
+
 ```bash
 g++ -std=c++11 main.cpp -lserial -o my_app
 ```
@@ -130,7 +133,7 @@ g++ -std=c++11 main.cpp -lserial -o my_app
 
 ```cpp
 // 构造函数
-Serial(const std::string &port, 
+Serial(const std::string &port,
        uint32_t baudrate,
        Timeout timeout = Timeout());
 
@@ -180,6 +183,7 @@ sudo usermod -a -G dialout $USER
 ### 2. 找不到串口设备
 
 查看可用串口：
+
 ```bash
 ls /dev/tty*
 # 或
@@ -189,6 +193,7 @@ dmesg | grep tty
 ### 3. CMake 找不到 serial 包
 
 确保已正确安装，或手动指定路径：
+
 ```bash
 cmake -Dserial_DIR=/usr/local/lib/cmake/serial ..
 ```
@@ -196,6 +201,7 @@ cmake -Dserial_DIR=/usr/local/lib/cmake/serial ..
 ### 4. 动态库链接问题
 
 更新动态库缓存：
+
 ```bash
 sudo ldconfig
 ```
